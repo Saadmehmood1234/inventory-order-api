@@ -261,110 +261,16 @@ The server will start at:
 ```text
 http://localhost:5000
 ```
----
-
-## 9. Authentication Flow
-
-```text
-POST /auth/login
-       │
-       ▼
-Validate credentials
-       │
-       ▼
-Find user
-       │
-       ▼
-Compare password hash
-       │
-       ▼
-Generate JWT
-       │
-       ▼
-Set HttpOnly cookie
-       │
-       ▼
-Return user information
-```
-
-For a protected request:
-
-```text
-Client
-  │
-  │ accessToken cookie
-  ▼
-Express
-  │
-  ▼
-cookie-parser
-  │
-  ▼
-Authentication Middleware
-  │
-  ├── No cookie → 401
-  │
-  ├── Invalid token → 401
-  │
-  └── Valid token
-          │
-          ▼
-      req.user
-          │
-          ▼
-      Controller
-```
 
 ---
 
-## 10. Order Creation Flow
-
-```text
-POST /orders
-      │
-      ▼
-Authenticate User
-      │
-      ▼
-Validate Request
-      │
-      ▼
-Normalize Duplicate Products
-      │
-      ▼
-Start MongoDB Transaction
-      │
-      ├── Find Product
-      │
-      ├── Validate Stock
-      │
-      ├── Atomically Decrease Stock
-      │
-      ├── Calculate Subtotal
-      │
-      └── Calculate Total
-      │
-      ▼
-Create Order
-      │
-      ▼
-Commit Transaction
-      │
-      ▼
-Return Order
-```
-
-If any step fails, the transaction is rolled back.
-
----
-
-## 11. Handling Two Users Ordering the Last Item (Question)
+## 9. Handling Two Users Ordering the Last Item (Question)
 
 I would prevent this using an **atomic stock update or a locking mechanism**. The important part is that checking the stock and reducing it must happen atomically. If two users try to purchase the last available item at the same time, only one request can successfully decrement the stock; the other request will fail because the stock is no longer available. This guarantees that the stock never becomes negative and both orders cannot be confirmed.
 
 ---
 
-## 12. AI Tools Used
+## 10. AI Tools Used
 
 | AI Tool | What I Used It For |
 | ------- | ------------------ |
@@ -372,7 +278,7 @@ I would prevent this using an **atomic stock update or a locking mechanism**. Th
 
 ---
 
-## 13. Future Improvements
+## 11. Future Improvements
 
 For a production system, the following could be added:
 
@@ -396,7 +302,7 @@ For a production system, the following could be added:
 
 ---
 
-# 14. Author
+# 12. Author
 
 **Saad Mehmood**
 
