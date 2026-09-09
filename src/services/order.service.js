@@ -9,18 +9,6 @@ export const createOrder = async (
   userId,
   items
 ) => {
-  /*
-   * Merge duplicate products.
-   *
-   * Example:
-   *
-   * Product A → 2
-   * Product A → 3
-   *
-   * becomes:
-   *
-   * Product A → 5
-   */
   const quantityMap = new Map();
 
   for (const item of items) {
@@ -42,10 +30,6 @@ export const createOrder = async (
         quantity,
       })
     );
-
-  /*
-   * MongoDB transaction.
-   */
   const session =
     await mongoose.startSession();
 
@@ -59,9 +43,7 @@ export const createOrder = async (
         let totalAmount = 0;
 
         for (const item of normalizedItems) {
-          /*
-           * Find product.
-           */
+
           const product =
             await Product.findById(
               item.productId
@@ -74,16 +56,6 @@ export const createOrder = async (
             );
           }
 
-          /*
-           * Atomic stock update.
-           *
-           * The important condition is:
-           *
-           * stockQuantity >= requested quantity
-           *
-           * MongoDB will only update the document
-           * if this condition is true.
-           */
           const updatedProduct =
             await Product.findOneAndUpdate(
               {
@@ -107,23 +79,12 @@ export const createOrder = async (
               }
             );
 
-          /*
-           * If updatedProduct is null,
-           * there wasn't enough stock.
-           */
           if (!updatedProduct) {
             throw new ApiError(
               409,
               `Insufficient stock for "${product.name}"`
             );
           }
-
-          /*
-           * IMPORTANT:
-           *
-           * Price is taken from the database.
-           * Never trust price from the client.
-           */
           const unitPrice =
             product.price;
 
@@ -139,11 +100,6 @@ export const createOrder = async (
             subtotal,
           });
         }
-
-        /*
-         * Create order only after every product's
-         * stock has successfully been reduced.
-         */
         const orders =
           await Order.create(
             [
@@ -163,9 +119,6 @@ export const createOrder = async (
       }
     );
 
-    /*
-     * Populate after transaction.
-     */
     await createdOrder.populate(
       "items.product",
       "name category"
